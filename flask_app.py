@@ -5,6 +5,10 @@ import asyncio
 import vcbs_loader
 # import time
 from threading import Thread
+import inspect
+
+if not hasattr(inspect, 'getargspec'):
+    inspect.getargspec = inspect.getfullargspec
 
 app = fl.Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
