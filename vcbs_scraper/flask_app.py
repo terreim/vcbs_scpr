@@ -23,9 +23,10 @@ def get_data():
     return fl.jsonify(load_data())
 
 def run_scraper():
-    app = vcbs_loader.App()
+    
     while True:
         try:
+            app = vcbs_loader.App()
             app.data_loader()
             global json_data
             json_data = load_data()
