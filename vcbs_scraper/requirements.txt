@@ -79,7 +79,6 @@ pyee==11.1.0
 Pygments==2.17.2
 pymongo==4.6.2
 pyparsing==3.1.1
-pyppeteer==2.0.0
 pyquery==2.0.0
 PySocks==1.7.1
 pytest==8.1.1
@@ -107,7 +106,7 @@ trio-websocket==0.11.1
 ttkwidgets==0.13.0
 typing_extensions==4.11.0
 tzdata==2023.3
-urllib3==1.25.8
+urllib3==2.2.1
 w3lib==2.1.2
 wcwidth==0.2.13
 websockets==10.4
