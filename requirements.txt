@@ -19,7 +19,6 @@ colorama==0.4.6
 comm==0.2.2
 contourpy==1.2.0
 cssselect==1.2.0
-customtkinter==5.2.2
 cycler==0.12.1
 darkdetect==0.8.0
 debugpy==1.8.1
@@ -36,7 +35,6 @@ greenlet==3.0.3
 gunicorn==19.7.1
 h11==0.14.0
 httpcore==1.0.2
-httpx==0.26.0
 idna==3.7
 importlib_metadata==7.1.0
 iniconfig==2.0.0
@@ -55,12 +53,8 @@ matplotlib==3.8.2
 matplotlib-inline==0.1.6
 maxminddb==2.6.1
 multidict==6.0.5
-mysql-connector-python==8.3.0
 nest-asyncio==1.6.0
-numpy==1.26.2
-openai==1.7.2
 packaging==23.2
-pandas==2.1.4
 parse==1.20.1
 parso==0.8.3
 Pillow==10.1.0
@@ -77,7 +71,6 @@ pydantic==2.5.3
 pydantic_core==2.14.6
 pyee==11.1.0
 Pygments==2.17.2
-pymongo==4.6.2
 pyparsing==3.1.1
 pyquery==2.0.0
 PySocks==1.7.1
