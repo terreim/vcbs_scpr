@@ -11,30 +11,24 @@ app = fl.Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
 
-# def load_data():
-#     with open('data.json') as f:
-#         return json.load(f)
+def load_data():
+    with open('data.json') as f:
+        return json.load(f)
 
 @app.route("/")
 def home():
     return fl.render_template('home.html')
 
-# @app.route('/api/data')
-# def get_data():
-#     return fl.jsonify(load_data())
-
 @app.route('/api/data')
 def get_data():
-    app = vcbs_loader.App()
-    return app.data_loader()
+    return fl.jsonify(load_data())
 
 def run_scraper():
     while True:
         try:
             app = vcbs_loader.App()
-            # app.data_loader()
-            # json_data = load_data()
-            json_data = app.data_loader()
+            app.data_loader()
+            json_data = load_data()
             socketio.emit('update_data', json_data)
         except Exception as e:
             print(f"Error scraping: {e}")
