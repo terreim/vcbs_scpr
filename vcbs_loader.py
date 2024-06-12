@@ -1,6 +1,7 @@
 from requests_html import HTMLSession
 from bs4 import BeautifulSoup
 import json
+import time
 
 class App():
     @staticmethod
@@ -11,7 +12,7 @@ class App():
     def __init__(self):
         session = HTMLSession()
         resp = session.get('https://priceboard.vcbs.com.vn/Priceboard')
-        resp.html.render(sleep=3)
+        resp.html.render(sleep=2.5)
         self.priceboard_elements = resp.html.find('tbody > tr')
     
     def data_loader(self):
@@ -58,3 +59,11 @@ class App():
 
         with open('data.json', 'w') as file:
             json.dump(self.detail_, file)
+#         return self.detail_
+    
+
+# while True:
+#     app = App()
+#     app.data_loader()
+#     time.sleep(2)
+# app.data_loader()
