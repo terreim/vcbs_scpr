@@ -2,6 +2,8 @@ import flask as fl
 import json
 from flask_socketio import SocketIO
 import asyncio
+from requests_html import HTMLSession
+from bs4 import BeautifulSoup
 # import time
 from threading import Thread
 
