@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search');
     const stockTableBody = document.querySelector('#stock-table tbody');
 
-    var socket = io.connect('http://127.0.0.1:5000');
+    var socket = io.connect('https://vcbs-scpr.onrender.com/');
 
     function fetchStocksAndUpdateTable() {
         fetch('/api/data')
