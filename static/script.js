@@ -4,18 +4,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search');
     const stockTableBody = document.querySelector('#stock-table tbody');
 
-    var socket = io.connect('https://vcbs-scpr.onrender.com/');
+    var socket = io.connect('http://127.0.0.1:5000');
 
     function fetchStocksAndUpdateTable() {
-        fetch('/api/data')
-            .then(response => response.json())
-            .then(stocks => {
-                console.log("Fetched Stocks:", stocks);
-                allStocks =     stocks; 
-                displayStockTable(stocks);
-            })
-            .catch(error => console.error('Failed to fetch stocks:', error));
-    }
+        socket.on('update_data', (stocks) => {
+            console.log("Real-time update received:", stocks);
+            allStocks = stocks;
+            displayStockTable(stocks);
+        })};
+            
     
     function displayStockTable(stocks) {
         stockTableBody.innerHTML = ''; // Clear previous data
@@ -73,12 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const filteredStocks = allStocks.filter(stock => 
             stock.name.toLowerCase().includes(searchTerm));
         displayStockTable(filteredStocks); 
-    });
-
-    socket.on('update_data', (stocks) => {
-        console.log("Real-time update received:", stocks);
-        allStocks = stocks;
-        displayStockTable(stocks);
     });
 
     fetchStocksAndUpdateTable();
