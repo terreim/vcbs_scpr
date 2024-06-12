@@ -59,7 +59,7 @@ class App():
 
         with open('data.json', 'w') as file:
             json.dump(self.detail_, file)
-#         return self.detail_
+        return self.detail_
     
 
 # while True:
