@@ -84,6 +84,14 @@ def get_data():
     data = asyncio.run(load_data()) 
     return fl.jsonify(data)
 
+@socketio.on('connect')
+def handle_connect():
+    print('Client connected')
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print('Client disconnected')
+
 def run_scraper():
     asyncio.set_event_loop(asyncio.new_event_loop()) 
     loop = asyncio.get_event_loop()
