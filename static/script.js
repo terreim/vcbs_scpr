@@ -72,10 +72,14 @@ document.addEventListener('DOMContentLoaded', () => {
             stock.name.toLowerCase().includes(searchTerm));
         displayStockTable(filteredStocks); 
     });
-
+    
     socket.on('connect', () => {
             console.log('Connected to server');
         });
+    
+    socket.on('test_event', (test_event) => {
+            console.log('Log:', test_event);
+    });
     
     socket.on('connect_error', (error) => {
         console.error('Connection error:', error);
