@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(response => response.json())
             .then(stocks => {
                 console.log("Fetched Stocks:", stocks);
-                allStocks =     stocks; 
+                allStocks = stocks; 
                 displayStockTable(stocks);
             })
             .catch(error => console.error('Failed to fetch stocks:', error));
