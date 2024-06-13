@@ -3,6 +3,7 @@ import json
 from flask_socketio import SocketIO
 import asyncio
 import vcbs_loader
+import eventlet
 # import time
 from threading import Thread
 import inspect
@@ -39,14 +40,8 @@ def run_scraper():
             print(f"Error scraping: {e}")
             # time.sleep(2.5)
 
-def run_scraper_thread():
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(run_scraper())
-
-
 if __name__ == '__main__':
-    scraper_thread = Thread(target=run_scraper_thread)
+    scraper_thread = Thread(target=run_scraper)
     scraper_thread.start()
     
     socketio.run(app, debug=True)
