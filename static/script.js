@@ -75,10 +75,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     socket.on('connect', () => {
             console.log('Connected to server');
-        });
-    
-    socket.on('test_event', (test_event) => {
-            console.log('Log:', test_event);
     });
     
     socket.on('connect_error', (error) => {
