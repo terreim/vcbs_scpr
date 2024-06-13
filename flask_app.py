@@ -99,7 +99,7 @@ def run_scraper():
         try:
             json_data = loop.run_until_complete(load_data())
             with app.app_context(): 
-                emit('update_data', json_data)
+                socketio.emit('update_data', json_data)
             print(f"Data emitted {json_data}")
         except Exception as e:
             print(f"Error scraping: {e}")
