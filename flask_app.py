@@ -7,9 +7,11 @@ import vcbs_loader
 from threading import Thread
 import inspect
 
+eventlet.monkey_patch()
+
 app = fl.Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 def load_data():
     # with open('data.json') as f:
