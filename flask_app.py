@@ -5,6 +5,7 @@ import asyncio
 from requests_html import HTMLSession
 from bs4 import BeautifulSoup
 from threading import Thread
+import time
 
 app = fl.Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -17,8 +18,8 @@ class App():
         return item.text if item else ''
 
     def __init__(self):
-        session = HTMLSession()
-        resp = session.get('https://priceboard.vcbs.com.vn/Priceboard')
+        self.session = HTMLSession()
+        resp = self.session.get('https://priceboard.vcbs.com.vn/Priceboard')
         resp.html.render(sleep=2.5)
         self.priceboard_elements = resp.html.find('tbody > tr')
     
@@ -66,8 +67,8 @@ class App():
         return self.detail_
 
 def load_data():
-    app = vcbs_loader.App()
-    data = app.data_loader()
+    app_instance = App()
+    data = app_instance.data_loader()
     return data
 
 @app.route("/")
@@ -79,17 +80,20 @@ def get_data():
     return fl.jsonify(load_data())
 
 def run_scraper():
+    asyncio.set_event_loop(asyncio.new_event_loop())  
     while True:
-        try: 
+        try:
             json_data = load_data()
-            socketio.emit('update_data', json_data)
+            with app.app_context(): 
+                socketio.emit('update_data', json_data)
             print(f"Data emitted {json_data}")
         except Exception as e:
             print(f"Error scraping: {e}")
-            # time.sleep(2.5)
+        time.sleep(2) 
 
 if __name__ == '__main__':
     scraper_thread = Thread(target=run_scraper)
+    scraper_thread.daemon = True 
     scraper_thread.start()
-    
+
     socketio.run(app, debug=True)
