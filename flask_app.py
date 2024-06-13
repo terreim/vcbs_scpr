@@ -11,7 +11,7 @@ app = fl.Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-class App:
+class VCBS_Scraper:
     @staticmethod
     def get_text_by_id_ending(element, suffix):
         item = element.find(id=lambda x: x and x.endswith(suffix))
@@ -99,7 +99,7 @@ def run_scraper():
         try:
             json_data = loop.run_until_complete(load_data())
             with app.app_context(): 
-                socketio.emit('update_data', json_data)
+                emit('update_data', json_data)
             print(f"Data emitted {json_data}")
         except Exception as e:
             print(f"Error scraping: {e}")
