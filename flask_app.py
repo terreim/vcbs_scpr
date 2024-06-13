@@ -12,8 +12,11 @@ app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
 
 def load_data():
-    with open('data.json') as f:
-        return json.load(f)
+    # with open('data.json') as f:
+    #     return json.load(f)
+    app = vcbs_loader.App()
+    data = app.data_loader()
+    return data
 
 @app.route("/")
 def home():
@@ -26,8 +29,8 @@ def get_data():
 def run_scraper():
     while True:
         try:
-            app = vcbs_loader.App()
-            app.data_loader()
+            # app = vcbs_loader.App()
+            # app.data_loader()
             json_data = load_data()
             socketio.emit('update_data', json_data)
         except Exception as e:
