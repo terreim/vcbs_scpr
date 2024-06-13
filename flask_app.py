@@ -5,6 +5,7 @@ from requests_html import AsyncHTMLSession
 from bs4 import BeautifulSoup
 from threading import Thread
 import time
+from websockets import client
 
 app = fl.Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
