@@ -1,13 +1,12 @@
-import flask as fl
+from flask import Flask, render_template, jsonify
 from flask_socketio import SocketIO, emit
 import asyncio
 from requests_html import AsyncHTMLSession
 from bs4 import BeautifulSoup
 from threading import Thread
 import time
-from websockets import client
 
-app = fl.Flask(__name__)
+app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, cors_allowed_origins="*")
 
@@ -77,12 +76,12 @@ async def load_data():
 
 @app.route("/")
 def home():
-    return fl.render_template('home.html')
+    return render_template('home.html')
 
 @app.route('/api/data')
 def get_data():
     data = asyncio.run(load_data()) 
-    return fl.jsonify(data)
+    return jsonify(data)
 
 @socketio.on('connect')
 def handle_connect():
