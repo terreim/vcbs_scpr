@@ -11,7 +11,7 @@ app = fl.Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-class VCBS_Scraper:
+class VCBS_Scraper():
     @staticmethod
     def get_text_by_id_ending(element, suffix):
         item = element.find(id=lambda x: x and x.endswith(suffix))
@@ -70,7 +70,7 @@ class VCBS_Scraper:
         return detail
 
 async def load_data():
-    app_instance = App()
+    app_instance = VCBS_Scraper()
     await app_instance.async_init()
     data = await app_instance.data_loader()
     return data
