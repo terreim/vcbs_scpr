@@ -1,6 +1,7 @@
 from flask import Flask, render_template, jsonify
 from flask_socketio import SocketIO, emit
 import asyncio
+import eventlet
 from requests_html import AsyncHTMLSession
 from bs4 import BeautifulSoup
 from threading import Thread
@@ -9,6 +10,8 @@ import time
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, cors_allowed_origins="*")
+
+eventlet.monkey_patch()
 
 class VCBS_Scraper():
     @staticmethod
