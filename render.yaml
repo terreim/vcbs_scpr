@@ -1,8 +1,0 @@
-services:
-  - type: web
-    name: vcbs_
-    env: python
-    region: singapore
-    plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn flask_app:app
