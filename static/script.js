@@ -6,23 +6,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     var socket = io.connect(window.location.origin);
 
-    socket.on('connect', () => {
-        console.log('Connected to server');
-    });
-
-    socket.on('connect_error', (error) => {
-        console.error('Connection error:', error);
-    });
-
-    socket.on('disconnect', () => {
-        console.warn('Disconnected from server');
-    });
-
-    socket.on('update_data', (stocks) => {
-        console.log("Real-time update received:", stocks);
-        allStocks = stocks;
-        displayStockTable(stocks);
-    });
+    function fetchStocksAndUpdateTable() {
+        socket.on('connect', () => {
+            console.log('Connected to server');
+        });
+    
+        socket.on('connect_error', (error) => {
+            console.error('Connection error:', error);
+        });
+    
+        socket.on('disconnect', () => {
+            console.warn('Disconnected from server');
+        });
+    
+        socket.on('update_data', (stocks) => {
+            console.log("Real-time update received:", stocks);
+            allStocks = stocks;
+            displayStockTable(stocks);
+        })};
             
     
     function displayStockTable(stocks) {
