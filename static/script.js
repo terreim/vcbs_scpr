@@ -4,9 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search');
     const stockTableBody = document.querySelector('#stock-table tbody');
 
-    var socket = io.connect(window.location.origin, {
-        transports: ['websocket', 'polling']
-    });
+    var socket = io.connect('http://' + document.domain + ':' + location.port + '/test');
 
     function fetchStocksAndUpdateTable() {
         fetch('/api/data')
