@@ -5,6 +5,7 @@ import eventlet
 from requests_html import AsyncHTMLSession
 from bs4 import BeautifulSoup
 from threading import Thread
+import json
 import time
 
 app = Flask(__name__)
@@ -74,7 +75,11 @@ class VCBS_Scraper():
                 continue
         return detail
 
-async def load_data():
+def load_data():
+    with open('data.json') as f:
+        return json.load(f)
+
+async def initialize_data():
     app_instance = VCBS_Scraper()
     await app_instance.async_init()
     data = await app_instance.data_loader()
@@ -86,7 +91,7 @@ def home():
 
 @app.route('/api/data')
 def get_data():
-    data = asyncio.run(load_data()) 
+    data = load_data() 
     return jsonify(data)
 
 @socketio.on('connect')
@@ -102,7 +107,7 @@ def run_scraper():
     loop = asyncio.get_event_loop()
     while True:
         try:
-            json_data = loop.run_until_complete(load_data())
+            json_data = loop.run_until_complete(initialize_data())
             with app.app_context(): 
                 socketio.emit('update_data', json_data)
             print(f"Data emitted {json_data}")
