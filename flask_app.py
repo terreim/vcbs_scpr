@@ -3,12 +3,12 @@ import json
 from flask_socketio import SocketIO
 import asyncio
 import vcbs_loader
-import eventlet
+# import eventlet
 # import time
 from threading import Thread
 import inspect
 
-eventlet.monkey_patch()
+# eventlet.monkey_patch()
 
 app = fl.Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
