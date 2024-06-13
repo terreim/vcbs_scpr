@@ -9,32 +9,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function fetchStocksAndUpdateTable() {
-        socket.on('connect', () => {
-            console.log('Connected to server');
-        });
-    
-        socket.on('connect_error', (error) => {
-            console.error('Connection error:', error);
-        });
-    
-        socket.on('disconnect', () => {
-            console.warn('Disconnected from server');
-        });
-    
-        socket.on('update_data', (stocks) => {
-            console.log("Real-time update received:", stocks);
-            allStocks = stocks;
-            displayStockTable(stocks);
-        })};
+        fetch('/api/data')
+            .then(response => response.json())
+            .then(stocks => {
+                console.log("Fetched Stocks:", stocks);
+                allStocks =     stocks; 
+                displayStockTable(stocks);
+            })
+            .catch(error => console.error('Failed to fetch stocks:', error));
+    }
             
-    
     function displayStockTable(stocks) {
-        stockTableBody.innerHTML = ''; // Clear previous data
+        stockTableBody.innerHTML = '';
     
         stocks.forEach((stock) => {
             let changeClass;
-    
-            // Extract the change value and determine the class based on it
             if (stock.change.includes('+')) {
                 changeClass = 'positive';
             } else if (stock.change.includes('-')) {
@@ -84,6 +73,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const filteredStocks = allStocks.filter(stock => 
             stock.name.toLowerCase().includes(searchTerm));
         displayStockTable(filteredStocks); 
+    });
+
+    socket.on('connect', () => {
+            console.log('Connected to server');
+        });
+    
+    socket.on('connect_error', (error) => {
+        console.error('Connection error:', error);
+    });
+
+    socket.on('disconnect', () => {
+        console.warn('Disconnected from server');
+    });
+
+    socket.on('update_data', (stocks) => {
+        console.log("Real-time update received:", stocks);
+        allStocks = stocks;
+        displayStockTable(stocks);
     });
 
     fetchStocksAndUpdateTable();
