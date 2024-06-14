@@ -10,7 +10,7 @@ import time
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app, cors_allowed_origins="https://vcbs-scpr.onrender.com")
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 eventlet.monkey_patch()
 
