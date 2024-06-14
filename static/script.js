@@ -86,7 +86,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     socket.on('disconnect', () => {
-        console.warn('Disconnected from server');
+        console.log(reason);
+        console.log(details.message);
+        console.log(details.description);
+        console.log(details.context);
     });
 
     socket.on('update_data', (stocks) => {
