@@ -107,10 +107,10 @@ def run_scraper():
             json_data = loop.run_until_complete(initialize_data())
             with app.app_context(): 
                 socketio.emit('update_data', json_data)
-            print(f"Data emitted {json_data}")
+            time.sleep(10)  # Adjust the sleep time as needed
         except Exception as e:
             print(f"Error scraping: {e}")
-        time.sleep(2)
+            time.sleep(5)  # Wait before retrying
 
 if __name__ == '__main__':
     scraper_thread = Thread(target=run_scraper)
