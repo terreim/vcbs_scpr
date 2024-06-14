@@ -4,7 +4,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search');
     const stockTableBody = document.querySelector('#stock-table tbody');
 
-    var socket = io.connect('window.location.origin');
+    const socket = io.connect(window.location.origin, {
+        transports: ['websocket', 'polling'],
+        reconnectionAttempts: 5,
+        timeout: 20000, 
+        upgrade: true
+    });
 
     function fetchStocksAndUpdateTable() {
         fetch('/api/data')
