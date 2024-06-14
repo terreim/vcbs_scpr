@@ -78,6 +78,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     socket.on('connect_error', (error) => {
+        console.log(error.req);
+        console.log(error.code); 
         console.log(error.message);
         console.log(error.description);
         console.log(error.context);
