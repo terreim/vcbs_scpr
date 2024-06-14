@@ -8,11 +8,11 @@ from threading import Thread
 import json
 import time
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app, cors_allowed_origins="*")
-
 eventlet.monkey_patch()
+
+app = fl.Flask(__name__)
+app.config['SECRET_KEY'] = 'secret!'
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
 class VCBS_Scraper():
     @staticmethod
