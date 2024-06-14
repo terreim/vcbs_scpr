@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const socket = io.connect(window.location.origin, {
         transports: ['websocket', 'polling'],
         reconnectionAttempts: 5,
-        timeout: 20000, 
+        timeout: 60000, 
         upgrade: true
     });
 
