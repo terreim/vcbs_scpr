@@ -78,7 +78,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     socket.on('connect_error', (error) => {
-        console.error('Connection error:', error);
+        console.log(error.message);
+        console.log(error.description);
+        console.log(error.context);
     });
 
     socket.on('disconnect', () => {
