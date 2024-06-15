@@ -1,14 +1,14 @@
+import eventlet
+eventlet.monkey_patch()
+
 from flask import Flask, render_template, jsonify
 from flask_socketio import SocketIO, emit
 import asyncio
-import eventlet
 from requests_html import AsyncHTMLSession
 from bs4 import BeautifulSoup
 from threading import Thread
 import json
 import time
-
-eventlet.monkey_patch()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
