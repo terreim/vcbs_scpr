@@ -4,7 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search');
     const stockTableBody = document.querySelector('#stock-table tbody');
 
-    const socket = io.connect(window.location.origin, {
+    const protocol = window.location.protocol === 'http:' ? 'wss:' : 'ws:';
+    const socket = io.connect('${protocol}//vcbs-scpr.onrender.com/', {
         transports: ['websocket', 'polling'],
         reconnectionAttempts: 5,
         timeout: 60000, 
