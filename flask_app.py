@@ -117,4 +117,4 @@ if __name__ == '__main__':
     scraper_thread.daemon = True  
     scraper_thread.start()
 
-    app.run(debug=True)
+    socketio.run(app, debug=True)
