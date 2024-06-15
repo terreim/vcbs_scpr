@@ -9,6 +9,10 @@ from bs4 import BeautifulSoup
 from threading import Thread
 import json
 import time
+import logging
+logging.getLogger('socketio').setLevel(logging.DEBUG)
+logging.getLogger('engineio').setLevel(logging.DEBUG)
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -118,3 +122,4 @@ if __name__ == '__main__':
     scraper_thread.start()
 
     socketio.run(app, debug=True)
+    
