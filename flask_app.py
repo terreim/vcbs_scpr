@@ -117,5 +117,4 @@ if __name__ == '__main__':
     scraper_thread.daemon = True  
     scraper_thread.start()
 
-    import eventlet.wsgi
-    eventlet.wsgi.server(eventlet.listen(('0.0.0.0', 8000)), app)
+    app.run(debug=True)
