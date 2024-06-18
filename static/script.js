@@ -4,10 +4,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search');
     const stockTableBody = document.querySelector('#stock-table tbody');
 
-    const socket = io.connect('wss://vcbs-scpr.onrender.com' {
+    const socket = io('https://vcbs-scpr.onrender.com', {
         transports: ['websocket', 'polling'],
         reconnectionAttempts: 5,
-        timeout: 60000, 
+        timeout: 60000,
         upgrade: true
     });
 
@@ -21,10 +21,10 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(error => console.error('Failed to fetch stocks:', error));
     }
-            
+
     function displayStockTable(stocks) {
         stockTableBody.innerHTML = '';
-    
+
         stocks.forEach((stock) => {
             let changeClass;
             if (stock.change.includes('+')) {
@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 changeClass = 'neutral';
             }
-    
+
             const tr = document.createElement('tr');
             
             // Setup the row's HTML content
@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${stock.foreign_sell}</td>
                 <td>${stock.foreign_remain}</td>
             `;
-    
+
             stockTableBody.appendChild(tr);
         });
     }
@@ -77,24 +77,17 @@ document.addEventListener('DOMContentLoaded', () => {
             stock.name.toLowerCase().includes(searchTerm));
         displayStockTable(filteredStocks); 
     });
-    
+
     socket.on('connect', () => {
-            console.log('Connected to server');
-    });
-    
-    socket.on('connect_error', (error) => {
-        console.log(error.req);
-        console.log(error.code); 
-        console.log(error.message);
-        console.log(error.description);
-        console.log(error.context);
+        console.log('Connected to server');
     });
 
-    socket.on('disconnect', () => {
-        console.log(reason);
-        console.log(details.message);
-        console.log(details.description);
-        console.log(details.context);
+    socket.on('connect_error', (error) => {
+        console.log('Connection Error:', error);
+    });
+
+    socket.on('disconnect', (reason) => {
+        console.log('Disconnected:', reason);
     });
 
     socket.on('update_data', (stocks) => {
