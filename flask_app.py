@@ -1,24 +1,25 @@
-import eventlet
-eventlet.monkey_patch()
-
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, session
 from flask_socketio import SocketIO, emit
-import asyncio
-from requests_html import AsyncHTMLSession
+from flask_cors import CORS
+from selenium import webdriver
+# from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 from threading import Thread
 import json
 import time
 import logging
-logging.getLogger('socketio').setLevel(logging.DEBUG)
-logging.getLogger('engineio').setLevel(logging.DEBUG)
 
+logging.getLogger('socketio').setLevel(logging.WARNING)
+logging.getLogger('engineio').setLevel(logging.WARNING)
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+# app.config['SECRET_KEY'] = 'top-secret!'
+# app.config['SESSION_TYPE'] = 'filesystem'
+CORS(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
-class VCBS_Scraper():
+class VCBS_Scraper:
     @staticmethod
     def get_text_by_id_ending(element, suffix):
         item = element.find(id=lambda x: x and x.endswith(suffix))
@@ -26,18 +27,28 @@ class VCBS_Scraper():
 
     def __init__(self):
         self.priceboard_elements = []
+        self.driver = None
+        self.initialize_driver()
 
-    async def async_init(self):
-        session = AsyncHTMLSession()
-        resp = await session.get('https://priceboard.vcbs.com.vn/Priceboard')
-        await resp.html.arender(sleep=2.5)
-        self.priceboard_elements = resp.html.find('tbody > tr')
+    def initialize_driver(self):
+        options = Options()
+        options.add_argument("--headless")
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        self.driver = webdriver.Chrome(options=options)
 
-    async def data_loader(self):
+    def scrape_data(self):
+        self.driver.get('https://priceboard.vcbs.com.vn/Priceboard')
+        time.sleep(2.5)
+        page_source = self.driver.page_source
+        soup = BeautifulSoup(page_source, 'html.parser')
+        self.priceboard_elements = soup.select('tbody > tr')
+
+    def data_loader(self):
         detail = []
         for element in self.priceboard_elements:
             try:
-                row = BeautifulSoup(element.html, 'html.parser')
+                row = BeautifulSoup(str(element), 'html.parser')
                 name = row.find('span', class_='symbol_link').text
                 if 's_8_s' in name:
                     continue
@@ -74,17 +85,31 @@ class VCBS_Scraper():
 
             except AttributeError:
                 continue
-        return detail
+
+        with open('data.json', 'w') as file:
+            json.dump(detail, file)
 
 def load_data():
     with open('data.json') as f:
         return json.load(f)
 
-async def initialize_data():
-    app_instance = VCBS_Scraper()
-    await app_instance.async_init()
-    data = await app_instance.data_loader()
+def initialize_data(scraper):
+    scraper.scrape_data()
+    scraper.data_loader()
+    with open('data.json') as f:
+        data = json.load(f)
     return data
+
+def run_scraper(scraper):
+    while True:
+        try:
+            json_data = initialize_data(scraper)
+            with app.app_context():
+                socketio.emit('update_data', json_data)
+            time.sleep(3)  
+        except Exception as e:
+            print(f"Error scraping: {e}")
+            time.sleep(3)
 
 @app.route("/")
 def home():
@@ -92,7 +117,7 @@ def home():
 
 @app.route('/api/data')
 def get_data():
-    data = load_data() 
+    data = load_data()
     return jsonify(data)
 
 @socketio.on('connect')
@@ -103,23 +128,10 @@ def handle_connect():
 def handle_disconnect():
     print('Client disconnected')
 
-def run_scraper():
-    asyncio.set_event_loop(asyncio.new_event_loop()) 
-    loop = asyncio.get_event_loop()
-    while True:
-        try:
-            json_data = loop.run_until_complete(initialize_data())
-            with app.app_context(): 
-                socketio.emit('update_data', json_data)
-            time.sleep(10)  # Adjust the sleep time as needed
-        except Exception as e:
-            print(f"Error scraping: {e}")
-            time.sleep(5)  # Wait before retrying
-
 if __name__ == '__main__':
-    scraper_thread = Thread(target=run_scraper)
-    scraper_thread.daemon = True  
+    scraper = VCBS_Scraper()
+    scraper_thread = Thread(target=run_scraper, args=(scraper,))
+    scraper_thread.daemon = True
     scraper_thread.start()
 
     socketio.run(app, debug=True)
-    
