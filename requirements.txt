@@ -1,13 +1,6 @@
-dnspython==2.2.1
-eventlet==0.33.0
 Flask==3.0.3
+Flask-Cors==4.0.1
 Flask-SocketIO==5.3.6
+selenium==4.21.0
 gunicorn==22.0.0 
-playwright==1.43.0
-requests==2.31.0
-requests-futures==1.0.1
-requests-html==0.10.0
-requests-htmlc==0.0.7
-simple-websocket==1.0.0
-websockets==10.4
-Werkzeug==3.0.3
+
