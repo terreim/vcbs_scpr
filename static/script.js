@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search');
     const stockTableBody = document.querySelector('#stock-table tbody');
 
-    const socket = io.connect('wss://vcbs-scpr.onrender.com {
+    const socket = io.connect('wss://vcbs-scpr.onrender.com' {
         transports: ['websocket', 'polling'],
         reconnectionAttempts: 5,
         timeout: 60000, 
