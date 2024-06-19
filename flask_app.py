@@ -1,22 +1,17 @@
 from flask import Flask, render_template, jsonify, session
+from flask_session import Session
 from flask_socketio import SocketIO, emit
-from flask_cors import CORS
 from selenium import webdriver
-# from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 from threading import Thread
 import json
 import time
-import logging
-
-logging.getLogger('socketio').setLevel(logging.WARNING)
-logging.getLogger('engineio').setLevel(logging.WARNING)
 
 app = Flask(__name__)
-# app.config['SECRET_KEY'] = 'top-secret!'
-# app.config['SESSION_TYPE'] = 'filesystem'
-CORS(app)
+app.config['SECRET_KEY'] = 'top-secret!'
+app.config['SESSION_TYPE'] = 'filesystem'
+Session(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 class VCBS_Scraper:
@@ -117,21 +112,21 @@ def home():
 
 @app.route('/api/data')
 def get_data():
-    data = load_data()
+    with open(Config.JSON_DATA_FILE) as f:
+        data = json.load(f)
     return jsonify(data)
 
 @socketio.on('connect')
 def handle_connect():
     print('Client connected')
+    scraper_thread = Thread(target=run_scraper, args=(scraper,))
+    scraper_thread.daemon = True
+    scraper_thread.start()
 
 @socketio.on('disconnect')
 def handle_disconnect():
     print('Client disconnected')
 
 if __name__ == '__main__':
-    scraper = VCBS_Scraper()
-    scraper_thread = Thread(target=run_scraper, args=(scraper,))
-    scraper_thread.daemon = True
-    scraper_thread.start()
-
     socketio.run(app, debug=True)
+    scraper.close_driver()
