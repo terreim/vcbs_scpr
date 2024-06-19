@@ -4,13 +4,15 @@ from flask_socketio import SocketIO, emit
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
-from threading import Thread
+import threading
 import json
 import time
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'top-secret!'
 app.config['SESSION_TYPE'] = 'filesystem'
+PRICEBOARD_URL = 'https://priceboard.vcbs.com.vn/Priceboard'
+JSON_DATA_FILE = 'data.json'
 Session(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
@@ -19,21 +21,22 @@ class VCBS_Scraper:
     def get_text_by_id_ending(element, suffix):
         item = element.find(id=lambda x: x and x.endswith(suffix))
         return item.text if item else ''
-
-    def __init__(self):
-        self.priceboard_elements = []
-        self.driver = None
-        self.initialize_driver()
-
-    def initialize_driver(self):
+    
+    @staticmethod
+    def initialize_driver():
         options = Options()
         options.add_argument("--headless")
         options.add_argument('--no-sandbox')
         options.add_argument('--disable-dev-shm-usage')
-        self.driver = webdriver.Chrome(options=options)
+        return webdriver.Chrome(options=options)
+
+    def __init__(self):
+        self.priceboard_elements = []
+        self.driver = self.initialize_driver()  
+        self.lock = threading.Lock()
 
     def scrape_data(self):
-        self.driver.get('https://priceboard.vcbs.com.vn/Priceboard')
+        self.driver.get(PRICEBOARD_URL)
         time.sleep(2.5)
         page_source = self.driver.page_source
         soup = BeautifulSoup(page_source, 'html.parser')
@@ -81,11 +84,14 @@ class VCBS_Scraper:
             except AttributeError:
                 continue
 
-        with open('data.json', 'w') as file:
+        with open(JSON_DATA_FILE, 'w') as file:
             json.dump(detail, file)
+        
+    def close_driver(self):
+        self.driver.quit()
 
 def load_data():
-    with open('data.json') as f:
+    with open(JSON_DATA_FILE) as f:
         return json.load(f)
 
 def initialize_data(scraper):
@@ -112,14 +118,14 @@ def home():
 
 @app.route('/api/data')
 def get_data():
-    with open(Config.JSON_DATA_FILE) as f:
+    with open(JSON_DATA_FILE) as f:
         data = json.load(f)
     return jsonify(data)
 
 @socketio.on('connect')
 def handle_connect():
     print('Client connected')
-    scraper_thread = Thread(target=run_scraper, args=(scraper,))
+    scraper_thread = threading.Thread(target=run_scraper, args=(scraper,))
     scraper_thread.daemon = True
     scraper_thread.start()
 
@@ -128,5 +134,6 @@ def handle_disconnect():
     print('Client disconnected')
 
 if __name__ == '__main__':
+    scraper = VCBS_Scraper()
     socketio.run(app, debug=True)
     scraper.close_driver()
