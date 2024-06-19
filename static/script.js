@@ -3,13 +3,9 @@ let allStocks = [];
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search');
     const stockTableBody = document.querySelector('#stock-table tbody');
+    const connectButton = document.getElementById('connect');
 
-    const socket = io('vcbs-scpr-76640d9fe868.herokuapp.com', {
-        transports: ['websocket', 'polling'],
-        reconnectionAttempts: 5,
-        timeout: 60000,
-        upgrade: true
-    });
+    let socket = null;
 
     function fetchStocksAndUpdateTable() {
         fetch('/api/data')
@@ -78,23 +74,35 @@ document.addEventListener('DOMContentLoaded', () => {
         displayStockTable(filteredStocks); 
     });
 
-    socket.on('connect', () => {
-        console.log('Connected to server');
+    connectButton.addEventListener('click', () => {
+        if (!socket) {
+            socket = io('vcbs-scpr-76640d9fe868.herokuapp.com', {
+                transports: ['websocket', 'polling'],
+                reconnectionAttempts: 5,
+                timeout: 60000,
+                upgrade: true
+            });
+
+            socket.on('connect', () => {
+                console.log('Connected to server');
+                fetchStocksAndUpdateTable();
+            });
+
+            socket.on('connect_error', (error) => {
+                console.log('Connection Error:', error);
+            });
+
+            socket.on('disconnect', (reason) => {
+                console.log('Disconnected:', reason);
+            });
+
+            socket.on('update_data', (stocks) => {
+                console.log("Real-time update received:", stocks);
+                allStocks = stocks;
+                displayStockTable(stocks);
+            });
+        }
     });
 
-    socket.on('connect_error', (error) => {
-        console.log('Connection Error:', error);
-    });
-
-    socket.on('disconnect', (reason) => {
-        console.log('Disconnected:', reason);
-    });
-
-    socket.on('update_data', (stocks) => {
-        console.log("Real-time update received:", stocks);
-        allStocks = stocks;
-        displayStockTable(stocks);
-    });
-
-    fetchStocksAndUpdateTable();
+    window.setInterval(fetchStocksAndUpdateTable, 3000);
 });
