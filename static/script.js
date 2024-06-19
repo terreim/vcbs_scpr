@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const stockTableBody = document.querySelector('#stock-table tbody');
 
     // Connect to the Socket.IO server
-    const socket = io('vcbs-scpr-76640d9fe868.herokuapp.com', {
+    const socket = io('http://ec2-54-206-94-184.ap-southeast-2.compute.amazonaws.com/', {
         transports: ['websocket', 'polling'],
         reconnectionAttempts: 5,
         timeout: 60000,
