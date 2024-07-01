@@ -1,7 +1,0 @@
-beautifulsoup4==4.12.3 
-Flask==3.0.3
-Flask-Session==0.8.0 
-Flask-SocketIO==5.3.6
-selenium==4.21.0
-gunicorn==22.0.0 
-
