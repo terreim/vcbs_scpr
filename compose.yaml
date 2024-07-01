@@ -1,0 +1,18 @@
+services:
+  server:
+    build:
+      context: .
+    ports:
+      - 8000:8000
+    volumes:
+      - .:/app
+    environment:
+      - FLASK_ENV=development
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
