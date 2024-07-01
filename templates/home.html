@@ -6,7 +6,6 @@
           content="width=device-width, initial-scale=1.0">
     <title>Priceboard</title>
     <link rel="stylesheet" href="{{url_for('static', filename='styles.css')}}">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js"></script>
 </head>
 <body>
     <div class="dashboard">
@@ -54,11 +53,111 @@
                 </thead>
                 
                 <tbody>
-                    <!-- Stock list will be dynamically added here -->
                 </tbody>
             </table>
         </section>
     </div>
-    <script src="{{url_for('static', filename='script.js')}}"></script>
+    <script type="module">
+        import { io } from "https://cdn.socket.io/4.3.2/socket.io.esm.min.js"
+
+        document.addEventListener('DOMContentLoaded', () => {
+            let allStocks = [];
+            const searchInput = document.getElementById('search');
+            const stockTableBody = document.querySelector('#stock-table tbody');
+
+            const socket = io('127.0.0.1:8000', {
+                transports: ['websocket', 'polling'],
+                reconnectionAttempts: 5,
+                timeout: 60000,
+                upgrade: true
+            });
+
+            function fetchStocksAndUpdateTable() {
+                fetch('/api/data')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok ' + response.statusText);
+                        }
+                        return response.json();
+                    })
+                    .then(stocks => {
+                        console.log("Fetched Stocks:", stocks);
+                        allStocks = stocks; 
+                        displayStockTable(stocks);
+                    })
+                    .catch(error => console.error('Failed to fetch stocks:', error));
+            }
+
+            function displayStockTable(stocks) {
+                stockTableBody.innerHTML = '';
+
+                stocks.forEach((stock) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${stock.name ?? ''}</td>
+                        <td>${stock.ceiling ?? ''}</td>
+                        <td>${stock.floor ?? ''}</td>
+                        <td>${stock.prior_close_price ?? ''}</td>
+                        <td>${stock.p3_best_bid ?? ''}</td>
+                        <td>${stock.p3_best_bid_vol ?? ''}</td>
+                        <td>${stock.p2_best_bid ?? ''}</td>
+                        <td>${stock.p2_best_bid_vol ?? ''}</td>
+                        <td>${stock.p1_best_bid ?? ''}</td>
+                        <td>${stock.p1_best_bid_vol ?? ''}</td>
+                        <td>${stock.change ?? ''}</td>
+                        <td>${stock.close_price ?? ''}</td>  
+                        <td>${stock.close_volume ?? ''}</td>
+                        <td>${stock.p1_best_ask ?? ''}</td>  
+                        <td>${stock.p1_best_ask_vol ?? ''}</td>
+                        <td>${stock.p2_best_ask ?? ''}</td>
+                        <td>${stock.p2_best_ask_vol ?? ''}</td>
+                        <td>${stock.p3_best_ask ?? ''}</td> 
+                        <td>${stock.p3_best_ask_vol ?? ''}</td> 
+                        <td>${stock.total_trading ?? ''}</td>  
+                        <td>${stock.open ?? ''}</td>
+                        <td>${stock.high ?? ''}</td>
+                        <td>${stock.low ?? ''}</td>
+                        <td>${stock.foreign_buy ?? ''}</td> 
+                        <td>${stock.foreign_sell ?? ''}</td>
+                        <td>${stock.foreign_remain ?? ''}</td>
+                    `;
+                    stockTableBody.appendChild(tr);
+                });
+            }
+
+
+            searchInput.addEventListener('input', (event) => {
+                const searchTerm = event.target.value.toLowerCase();
+                const filteredStocks = allStocks.filter(stock => 
+                    stock.name.toLowerCase().includes(searchTerm));
+                displayStockTable(filteredStocks); 
+            });
+
+            socket.on('connect', function() {
+            console.log('Connected to server');
+            socket.emit('test_event', {data: 'hello server'});
+            });
+
+            socket.on('connect_error', (error) => {
+                console.log('Connection Error:', error);
+            });
+
+            socket.on('test_response', function(data) {
+                console.log('Received response:', data);
+            });
+
+            socket.on('disconnect', function() {
+                console.log('Disconnected from server');
+            });
+
+            socket.on('update_data', (stocks) => {
+                console.log("Real-time update received:", stocks);
+                allStocks = stocks;
+                displayStockTable(stocks);
+            });
+            fetchStocksAndUpdateTable();
+        });
+
+    </script>
 </body>
 </html>
