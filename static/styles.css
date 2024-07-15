@@ -1,5 +1,3 @@
-/* styles.css */
-
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -11,6 +9,67 @@ body {
     max-width: 1500px;
     margin: auto;
     padding: 20px;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+    /* overflow: hidden; */
+}
+
+.dropbtn {
+    background-color: #333;
+    color: white;
+    padding: 7px;
+    font-size: 12px;
+    border: none;
+    cursor: pointer;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: white;
+    min-width: 200px;
+    max-height: 200px;
+    overflow-y: auto;
+    box-shadow: 0px 8px 12px 0px rgba(0,0,0,0.2);
+    font-size: 12px;
+    z-index: 1;
+}
+
+.dropdown-content input {
+    color: black;
+    padding: 5px 6px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content input:hover {background-color: #f1f1f1}
+
+.dropdown-content label {
+    display: flex;
+    align-items: center;
+    padding: 4px 6px;
+    cursor: pointer;
+}
+
+.dropdown-content input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown:hover .dropbtn {
+    background-color: white;
+    color: #333;
+    border: 2px solid #333;
+}
+
+.show {
+    display: block;
 }
 
 header {
@@ -44,6 +103,10 @@ h2 {
     margin-top: 0;
 }
 
+h3 {
+    font-size: 12px;
+}
+
 ul {
     list-style: none;
     padding: 0;
@@ -70,6 +133,68 @@ li button {
 li:hover button {
     display: inline-block;
 }
+
+#btn{
+	background-color: #333;
+	border: none;
+	padding: 7px;
+	color: #fff;
+	margin: 20px;
+	border-radius: 5px;
+	font-size: 16
+}
+#btn:hover{
+	background-color: #fff;
+	color: #333;
+	border: solid #333;
+    border-radius: 5px;
+}
+#ovrly{
+	background-color: #333;
+	height: 100%;
+	width: 100%;
+	position: fixed;
+	top: 0px;
+	opacity: 0;
+}
+
+#api-rqts{
+	background-color: #fff;
+	width: 30%;
+	margin: auto;
+	border: 1px solid #333;
+	border-radius: 10px;
+	padding: 20px;
+	text-align: top;
+	position: sticky;
+}
+
+#ovrly,#api-rqts{
+    display: none;
+}
+
+#cross{
+	position: absolute;
+    left: 94%;
+    top: 0px;
+    color: red;
+	font-size: 18;
+	font-weight: bold;
+	background-color: transparent;
+	border: 0
+}
+
+#generatedURL {
+    width: 100%;
+    height: 30px;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    margin-top: 10px;
+}
+
 
 #stock-info {
     font-size: 1.2em;
@@ -175,14 +300,14 @@ li:hover button {
     border: 1px solid #ddd;
     padding: 1px;
     text-align: center;
-    font-size: 0.85em;
+    font-size: 0.9em;
 }
 
 #stock-table th, #stock-table td {
     border: 1px solid #ddd;
     padding: 1px;
     text-align: center;
-    font-size: 0.85em;
+    font-size: 0.9em;
 }
 
 #stock-table tr:hover{
@@ -205,19 +330,6 @@ li:hover button {
     display: flex;
     gap: 5px;
 }
-
-/* .positive {
-    color: green;
-}
-
-.negative {
-    color: red;
-}
-
-.neutral {
-    color: yellow;
-} */
-
 
 button {
     padding: 5px 10px;
