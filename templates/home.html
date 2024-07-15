@@ -2,29 +2,54 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" 
-          content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Priceboard</title>
-    <link rel="stylesheet" href="{{url_for('static', filename='styles.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
     <div class="dashboard">
         <header>
             <h1>HOSE Stock Priceboard</h1>
         </header>
+        <section class="API-form">
+            <button id="btn">API</button>
+            <div id="ovrly"></div>
+            <div id="api-rqts">
+                <button id="cross">&cross;</button>
+                <h1>API Requests</h1>
+                <form id="apiForm">
+                    <h3>Select Stock Name</h3>
+                    <div class="dropdown">
+                        <button class="dropbtn" id="selectStocksButton">Select Stocks</button>
+                        <div id="stockOptions" class="dropdown-content"></div>
+                    </div>
+        
+                    <h3>Select Columns</h3>
+                    <div class="dropdown">
+                        <button class="dropbtn" id="selectColumnsButton">Select Columns</button>
+                        <div id="columnOptions" class="dropdown-content"></div>
+                    </div>
+                    
+                    <h3>Selected:</h3>
+                    <h3 id="slt_stocks">Stocks: </h3>
+                    <h3 id="slt_clms">Columns: </h3>
+                    
+                    <button type="button" onclick="generateURL()" id="btn">Generate URL</button>
+                    <input type="text" id="generatedURL" readonly>
+                </form>
+            </div>
+        </section>
         <section class="search-section">
-            <input type="text" id="search" 
-                   placeholder="Search for stocks...">
+            <input type="text" id="search" placeholder="Search for stocks...">
             <table id="stock-table">
                 <thead>
                     <tr class="title firstrow">
                         <th rowspan="2" data-column="0">Stock Name</th>
                         <th rowspan="2" data-column="1">Ceil</th>
                         <th rowspan="2" data-column="2">Floor</th>
-                        <th rowspan="2" dataname="3">Ref</th>
-                        <th colspan="6" data-column="4-9">Bid</th>
+                        <th rowspan="2" data-column="3">Ref</th>
                         <th colspan="3" data-column="10-12">Matched</th>
-                        <th colspan="6" data-column="13-18">Ask</th>
                         <th rowspan="2" data-column="19">Total Vol</th>
                         <th rowspan="2" data-column="20">Open</th>
                         <th rowspan="2" data-column="21">High</th>
@@ -34,42 +59,60 @@
                         <th rowspan="2" data-column="25">F.Remain</th>
                     </tr>
                     <tr class="title secondrow">
-                        <th data-column="4">Price3</th>
-                        <th data-column="5">Vol3</th>
-                        <th data-column="6">Price2</th>
-                        <th data-column="7">Vol2</th>
-                        <th data-column="8">Price1</th>
-                        <th data-column="9">Vol1</th>
                         <th data-column="10">+/-</th>
                         <th data-column="11">Matched Price</th>
                         <th data-column="12">Match Vol</th>
-                        <th data-column="13">Price1</th>
-                        <th data-column="14">Vol1</th>
-                        <th data-column="15">Price2</th>
-                        <th data-column="16">Vol2</th>
-                        <th data-column="17">Price3</th>
-                        <th data-column="18">Vol3</th>
                     </tr>
                 </thead>
-                
                 <tbody>
                 </tbody>
             </table>
         </section>
     </div>
     <script type="module">
-        import { io } from "https://cdn.socket.io/4.3.2/socket.io.esm.min.js"
+        import { io } from "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
 
         document.addEventListener('DOMContentLoaded', () => {
             let allStocks = [];
             const searchInput = document.getElementById('search');
             const stockTableBody = document.querySelector('#stock-table tbody');
+            const stockOptionsContainer = document.getElementById('stockOptions');
+            const columnOptionsContainer = document.getElementById('columnOptions');
+            const apiButton = document.getElementById('btn');
+            const overlay = document.getElementById('ovrly');
+            const apiFormContainer = document.getElementById('api-rqts');
+            const crossButton = document.getElementById('cross');
+            const selectedStocksElement = document.getElementById('slt_stocks');
+            const selectedColumnsElement = document.getElementById('slt_clms');
+            const selectStocksBtn = document.getElementById('selectStocksButton');
+            const selectColumnsBtn = document.getElementById('selectColumnsButton');
 
-            const socket = io('127.0.0.1:8000', {
+            const socket = io(window.location.protocol + '//' + window.location.host, {
                 transports: ['websocket', 'polling'],
                 reconnectionAttempts: 5,
                 timeout: 60000,
                 upgrade: true
+            });
+
+            selectStocksButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                document.getElementById('stockOptions').classList.toggle('show');
+            });
+
+            selectColumnsButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                document.getElementById('columnOptions').classList.toggle('show');
+            });
+
+            window.addEventListener('click', (event) => {
+                if (!event.target.matches('.dropbtn')) {
+                    const dropdowns = document.querySelectorAll('.dropdown-content');
+                    dropdowns.forEach(dropdown => {
+                        if (dropdown.classList.contains('show')) {
+                            dropdown.classList.remove('show');
+                        }
+                    });
+                }
             });
 
             function fetchStocksAndUpdateTable() {
@@ -82,7 +125,7 @@
                     })
                     .then(stocks => {
                         console.log("Fetched Stocks:", stocks);
-                        allStocks = stocks; 
+                        allStocks = stocks;
                         displayStockTable(stocks);
                     })
                     .catch(error => console.error('Failed to fetch stocks:', error));
@@ -98,21 +141,9 @@
                         <td>${stock.ceiling ?? ''}</td>
                         <td>${stock.floor ?? ''}</td>
                         <td>${stock.prior_close_price ?? ''}</td>
-                        <td>${stock.p3_best_bid ?? ''}</td>
-                        <td>${stock.p3_best_bid_vol ?? ''}</td>
-                        <td>${stock.p2_best_bid ?? ''}</td>
-                        <td>${stock.p2_best_bid_vol ?? ''}</td>
-                        <td>${stock.p1_best_bid ?? ''}</td>
-                        <td>${stock.p1_best_bid_vol ?? ''}</td>
                         <td>${stock.change ?? ''}</td>
                         <td>${stock.close_price ?? ''}</td>  
                         <td>${stock.close_volume ?? ''}</td>
-                        <td>${stock.p1_best_ask ?? ''}</td>  
-                        <td>${stock.p1_best_ask_vol ?? ''}</td>
-                        <td>${stock.p2_best_ask ?? ''}</td>
-                        <td>${stock.p2_best_ask_vol ?? ''}</td>
-                        <td>${stock.p3_best_ask ?? ''}</td> 
-                        <td>${stock.p3_best_ask_vol ?? ''}</td> 
                         <td>${stock.total_trading ?? ''}</td>  
                         <td>${stock.open ?? ''}</td>
                         <td>${stock.high ?? ''}</td>
@@ -125,24 +156,142 @@
                 });
             }
 
+            function displayStockOptions(stocks) {
+                stockOptionsContainer.innerHTML = '';
+                
+                const selectAll = document.createElement('input');
+                selectAll.type = 'checkbox';
+                selectAll.id = 'select_all_stocks';
+                selectAll.addEventListener('change', () => {
+                    const checkboxes = stockOptionsContainer.querySelectorAll('input[type="checkbox"]');
+                    checkboxes.forEach(checkbox => {
+                        checkbox.checked = selectAll.checked;
+                    });
+                    updateSelectedStocks();
+                });
+
+                const selectAllLabel = document.createElement('label');
+                selectAllLabel.appendChild(selectAll);
+                selectAllLabel.appendChild(document.createTextNode('Select All'));
+                stockOptionsContainer.appendChild(selectAllLabel);
+                
+                stocks.forEach(stock => {
+                    const input = document.createElement('input');
+                    input.type = 'checkbox';
+                    input.name = 'stock_name';
+                    input.value = stock.name;
+                    input.addEventListener('change', updateSelectedStocks);
+
+                    const label = document.createElement('label');
+                    label.appendChild(input);
+                    label.appendChild(document.createTextNode(stock.name));
+                    stockOptionsContainer.appendChild(label);
+                });
+            }
+
+            function displayColumnOptions(columns) {
+                columnOptionsContainer.innerHTML = '';
+                
+                const selectAll = document.createElement('input');
+                selectAll.type = 'checkbox';
+                selectAll.id = 'select_all_columns';
+                selectAll.addEventListener('change', () => {
+                    const checkboxes = columnOptionsContainer.querySelectorAll('input[type="checkbox"]');
+                    checkboxes.forEach(checkbox => {
+                        checkbox.checked = selectAll.checked;
+                    });
+                    updateSelectedColumns();
+                });
+
+                const selectAllLabel = document.createElement('label');
+                selectAllLabel.appendChild(selectAll);
+                selectAllLabel.appendChild(document.createTextNode('Select All'));
+                columnOptionsContainer.appendChild(selectAllLabel);
+
+                columns.forEach(column => {
+                    const input = document.createElement('input');
+                    input.type = 'checkbox';
+                    input.name = 'columns';
+                    input.value = column;
+                    input.addEventListener('change', updateSelectedColumns);
+
+                    const label = document.createElement('label');
+                    label.appendChild(input);
+                    label.appendChild(document.createTextNode(column));
+                    columnOptionsContainer.appendChild(label);
+                });
+            }
+
+            function updateSelectedStocks() {
+                const selectedStocks = Array.from(stockOptionsContainer.querySelectorAll('input[name="stock_name"]:checked'))
+                    .map(checkbox => checkbox.value);
+                selectedStocksElement.textContent = 'Stocks: ' + selectedStocks.join(', ');
+            }
+
+            function updateSelectedColumns() {
+                const selectedColumns = Array.from(columnOptionsContainer.querySelectorAll('input[name="columns"]:checked'))
+                    .map(checkbox => checkbox.value);
+                selectedColumnsElement.textContent = 'Columns: ' + selectedColumns.join(', ');
+            }
+
+            window.generateURL = function generateURL() {
+                const selectedStocks = Array.from(stockOptionsContainer.querySelectorAll('input[name="stock_name"]:checked'))
+                    .map(checkbox => checkbox.value);
+                const selectedColumns = Array.from(columnOptionsContainer.querySelectorAll('input[name="columns"]:checked'))
+                    .map(checkbox => checkbox.value);
+
+                const params = new URLSearchParams();
+                selectedStocks.forEach(stock => params.append('stock_name', stock));
+                selectedColumns.forEach(column => params.append('columns', column));
+
+                const url = window.location.protocol + '//' + window.location.host + `/api/data/custom?${params.toString()}`;
+                document.getElementById('generatedURL').value = url;
+            };
+
+            apiButton.addEventListener('click', () => {
+                overlay.style.display = 'block';
+                apiFormContainer.style.display = 'block';
+                apiFormContainer.style.top = '100px';
+
+                fetch('/api/data')
+                    .then(response => response.json())
+                    .then(data => {
+                        const columns = Object.keys(data[0]);
+                        displayStockOptions(data);
+                        displayColumnOptions(columns);
+                    })
+                    .catch(error => console.error('Error fetching data:', error));
+            });
+
+            overlay.addEventListener('click', () => {
+                overlay.style.display = 'none';
+                apiFormContainer.style.display = 'none';
+                apiFormContainer.style.top = '-250px';
+            });
+
+            crossButton.addEventListener('click', () => {
+                overlay.style.display = 'none';
+                apiFormContainer.style.display = 'none';
+                apiFormContainer.style.top = '-250px';
+            });
 
             searchInput.addEventListener('input', (event) => {
                 const searchTerm = event.target.value.toLowerCase();
                 const filteredStocks = allStocks.filter(stock => 
                     stock.name.toLowerCase().includes(searchTerm));
-                displayStockTable(filteredStocks); 
+                displayStockTable(filteredStocks);
             });
 
             socket.on('connect', function() {
-            console.log('Connected to server');
-            socket.emit('test_event', {data: 'hello server'});
+                console.log('Connected to server');
+                socket.emit('hello_event', {data: 'hello server'});
             });
 
             socket.on('connect_error', (error) => {
                 console.log('Connection Error:', error);
             });
 
-            socket.on('test_response', function(data) {
+            socket.on('log_response', function(data) {
                 console.log('Received response:', data);
             });
 
@@ -155,8 +304,324 @@
                 allStocks = stocks;
                 displayStockTable(stocks);
             });
+
             fetchStocksAndUpdateTable();
         });
+
+
+    </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Priceboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="dashboard">
+        <header>
+            <h1>HOSE Stock Priceboard</h1>
+        </header>
+        <section class="API-form">
+            <button id="btn">API</button>
+            <div id="ovrly"></div>
+            <div id="api-rqts">
+                <button id="cross">&cross;</button>
+                <h1>API Requests</h1>
+                <form id="apiForm">
+                    <h3>Select Stock Name</h3>
+                    <div class="dropdown">
+                        <button class="dropbtn" id="selectStocksButton">Select Stocks</button>
+                        <div id="stockOptions" class="dropdown-content"></div>
+                    </div>
+        
+                    <h3>Select Columns</h3>
+                    <div class="dropdown">
+                        <button class="dropbtn" id="selectColumnsButton">Select Columns</button>
+                        <div id="columnOptions" class="dropdown-content"></div>
+                    </div>
+                    
+                    <h3>Selected:</h3>
+                    <h3 id="slt_stocks">Stocks: </h3>
+                    <h3 id="slt_clms">Columns: </h3>
+                    
+                    <button type="button" onclick="generateURL()" id="btn">Generate URL</button>
+                    <input type="text" id="generatedURL" readonly>
+                </form>
+            </div>
+        </section>
+        <section class="search-section">
+            <input type="text" id="search" placeholder="Search for stocks...">
+            <table id="stock-table">
+                <thead>
+                    <tr class="title firstrow">
+                        <th rowspan="2" data-column="0">Stock Name</th>
+                        <th rowspan="2" data-column="1">Ceil</th>
+                        <th rowspan="2" data-column="2">Floor</th>
+                        <th rowspan="2" data-column="3">Ref</th>
+                        <th colspan="3" data-column="10-12">Matched</th>
+                        <th rowspan="2" data-column="19">Total Vol</th>
+                        <th rowspan="2" data-column="20">Open</th>
+                        <th rowspan="2" data-column="21">High</th>
+                        <th rowspan="2" data-column="22">Low</th>
+                        <th rowspan="2" data-column="23">F.Buy</th>
+                        <th rowspan="2" data-column="24">F.Sell</th>
+                        <th rowspan="2" data-column="25">F.Remain</th>
+                    </tr>
+                    <tr class="title secondrow">
+                        <th data-column="10">+/-</th>
+                        <th data-column="11">Matched Price</th>
+                        <th data-column="12">Match Vol</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </section>
+    </div>
+    <script type="module">
+        import { io } from "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
+
+        document.addEventListener('DOMContentLoaded', () => {
+            let allStocks = [];
+            const searchInput = document.getElementById('search');
+            const stockTableBody = document.querySelector('#stock-table tbody');
+            const stockOptionsContainer = document.getElementById('stockOptions');
+            const columnOptionsContainer = document.getElementById('columnOptions');
+            const apiButton = document.getElementById('btn');
+            const overlay = document.getElementById('ovrly');
+            const apiFormContainer = document.getElementById('api-rqts');
+            const crossButton = document.getElementById('cross');
+            const selectedStocksElement = document.getElementById('slt_stocks');
+            const selectedColumnsElement = document.getElementById('slt_clms');
+            const selectStocksBtn = document.getElementById('selectStocksButton');
+            const selectColumnsBtn = document.getElementById('selectColumnsButton');
+
+            const socket = io(window.location.protocol + '//' + window.location.host, {
+                transports: ['websocket', 'polling'],
+                reconnectionAttempts: 5,
+                timeout: 60000,
+                upgrade: true
+            });
+
+            selectStocksButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                document.getElementById('stockOptions').classList.toggle('show');
+            });
+
+            selectColumnsButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                document.getElementById('columnOptions').classList.toggle('show');
+            });
+
+            window.addEventListener('click', (event) => {
+                if (!event.target.matches('.dropbtn')) {
+                    const dropdowns = document.querySelectorAll('.dropdown-content');
+                    dropdowns.forEach(dropdown => {
+                        if (dropdown.classList.contains('show')) {
+                            dropdown.classList.remove('show');
+                        }
+                    });
+                }
+            });
+
+            function fetchStocksAndUpdateTable() {
+                fetch('/api/data')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok ' + response.statusText);
+                        }
+                        return response.json();
+                    })
+                    .then(stocks => {
+                        console.log("Fetched Stocks:", stocks);
+                        allStocks = stocks;
+                        displayStockTable(stocks);
+                    })
+                    .catch(error => console.error('Failed to fetch stocks:', error));
+            }
+
+            function displayStockTable(stocks) {
+                stockTableBody.innerHTML = '';
+
+                stocks.forEach((stock) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${stock.name ?? ''}</td>
+                        <td>${stock.ceiling ?? ''}</td>
+                        <td>${stock.floor ?? ''}</td>
+                        <td>${stock.prior_close_price ?? ''}</td>
+                        <td>${stock.change ?? ''}</td>
+                        <td>${stock.close_price ?? ''}</td>  
+                        <td>${stock.close_volume ?? ''}</td>
+                        <td>${stock.total_trading ?? ''}</td>  
+                        <td>${stock.open ?? ''}</td>
+                        <td>${stock.high ?? ''}</td>
+                        <td>${stock.low ?? ''}</td>
+                        <td>${stock.foreign_buy ?? ''}</td> 
+                        <td>${stock.foreign_sell ?? ''}</td>
+                        <td>${stock.foreign_remain ?? ''}</td>
+                    `;
+                    stockTableBody.appendChild(tr);
+                });
+            }
+
+            function displayStockOptions(stocks) {
+                stockOptionsContainer.innerHTML = '';
+                
+                const selectAll = document.createElement('input');
+                selectAll.type = 'checkbox';
+                selectAll.id = 'select_all_stocks';
+                selectAll.addEventListener('change', () => {
+                    const checkboxes = stockOptionsContainer.querySelectorAll('input[type="checkbox"]');
+                    checkboxes.forEach(checkbox => {
+                        checkbox.checked = selectAll.checked;
+                    });
+                    updateSelectedStocks();
+                });
+
+                const selectAllLabel = document.createElement('label');
+                selectAllLabel.appendChild(selectAll);
+                selectAllLabel.appendChild(document.createTextNode('Select All'));
+                stockOptionsContainer.appendChild(selectAllLabel);
+                
+                stocks.forEach(stock => {
+                    const input = document.createElement('input');
+                    input.type = 'checkbox';
+                    input.name = 'stock_name';
+                    input.value = stock.name;
+                    input.addEventListener('change', updateSelectedStocks);
+
+                    const label = document.createElement('label');
+                    label.appendChild(input);
+                    label.appendChild(document.createTextNode(stock.name));
+                    stockOptionsContainer.appendChild(label);
+                });
+            }
+
+            function displayColumnOptions(columns) {
+                columnOptionsContainer.innerHTML = '';
+                
+                const selectAll = document.createElement('input');
+                selectAll.type = 'checkbox';
+                selectAll.id = 'select_all_columns';
+                selectAll.addEventListener('change', () => {
+                    const checkboxes = columnOptionsContainer.querySelectorAll('input[type="checkbox"]');
+                    checkboxes.forEach(checkbox => {
+                        checkbox.checked = selectAll.checked;
+                    });
+                    updateSelectedColumns();
+                });
+
+                const selectAllLabel = document.createElement('label');
+                selectAllLabel.appendChild(selectAll);
+                selectAllLabel.appendChild(document.createTextNode('Select All'));
+                columnOptionsContainer.appendChild(selectAllLabel);
+
+                columns.forEach(column => {
+                    const input = document.createElement('input');
+                    input.type = 'checkbox';
+                    input.name = 'columns';
+                    input.value = column;
+                    input.addEventListener('change', updateSelectedColumns);
+
+                    const label = document.createElement('label');
+                    label.appendChild(input);
+                    label.appendChild(document.createTextNode(column));
+                    columnOptionsContainer.appendChild(label);
+                });
+            }
+
+            function updateSelectedStocks() {
+                const selectedStocks = Array.from(stockOptionsContainer.querySelectorAll('input[name="stock_name"]:checked'))
+                    .map(checkbox => checkbox.value);
+                selectedStocksElement.textContent = 'Stocks: ' + selectedStocks.join(', ');
+            }
+
+            function updateSelectedColumns() {
+                const selectedColumns = Array.from(columnOptionsContainer.querySelectorAll('input[name="columns"]:checked'))
+                    .map(checkbox => checkbox.value);
+                selectedColumnsElement.textContent = 'Columns: ' + selectedColumns.join(', ');
+            }
+
+            window.generateURL = function generateURL() {
+                const selectedStocks = Array.from(stockOptionsContainer.querySelectorAll('input[name="stock_name"]:checked'))
+                    .map(checkbox => checkbox.value);
+                const selectedColumns = Array.from(columnOptionsContainer.querySelectorAll('input[name="columns"]:checked'))
+                    .map(checkbox => checkbox.value);
+
+                const params = new URLSearchParams();
+                selectedStocks.forEach(stock => params.append('stock_name', stock));
+                selectedColumns.forEach(column => params.append('columns', column));
+
+                const url = window.location.protocol + '//' + window.location.host + `/api/data/custom?${params.toString()}`;
+                document.getElementById('generatedURL').value = url;
+            };
+
+            apiButton.addEventListener('click', () => {
+                overlay.style.display = 'block';
+                apiFormContainer.style.display = 'block';
+                apiFormContainer.style.top = '100px';
+
+                fetch('/api/data')
+                    .then(response => response.json())
+                    .then(data => {
+                        const columns = Object.keys(data[0]);
+                        displayStockOptions(data);
+                        displayColumnOptions(columns);
+                    })
+                    .catch(error => console.error('Error fetching data:', error));
+            });
+
+            overlay.addEventListener('click', () => {
+                overlay.style.display = 'none';
+                apiFormContainer.style.display = 'none';
+                apiFormContainer.style.top = '-250px';
+            });
+
+            crossButton.addEventListener('click', () => {
+                overlay.style.display = 'none';
+                apiFormContainer.style.display = 'none';
+                apiFormContainer.style.top = '-250px';
+            });
+
+            searchInput.addEventListener('input', (event) => {
+                const searchTerm = event.target.value.toLowerCase();
+                const filteredStocks = allStocks.filter(stock => 
+                    stock.name.toLowerCase().includes(searchTerm));
+                displayStockTable(filteredStocks);
+            });
+
+            socket.on('connect', function() {
+                console.log('Connected to server');
+                socket.emit('hello_event', {data: 'hello server'});
+            });
+
+            socket.on('connect_error', (error) => {
+                console.log('Connection Error:', error);
+            });
+
+            socket.on('log_response', function(data) {
+                console.log('Received response:', data);
+            });
+
+            socket.on('disconnect', function() {
+                console.log('Disconnected from server');
+            });
+
+            socket.on('update_data', (stocks) => {
+                console.log("Real-time update received:", stocks);
+                allStocks = stocks;
+                displayStockTable(stocks);
+            });
+
+            fetchStocksAndUpdateTable();
+        });
+
 
     </script>
 </body>
